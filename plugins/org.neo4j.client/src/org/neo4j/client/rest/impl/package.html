@@ -1,0 +1,16 @@
+<body>
+<h1>Lazy loading</h1>
+
+<h1>Caching</h1>
+
+
+<h1>Why have data objects?</h1>
+<p>RestNodeImpl and RestRelationshipImlp have child objects NodeData and RelationshipData. Why is that? 
+Why not just marshal and un-marshal JSON to the node and relationship objects?</p>
+<p>Two reasons. First, the set of API attributes and the set of JSON properties are not the same. There 
+are many attributes in the API that are not in the JSON, and vice versa. Having the NodeData and RelationshipData 
+classes make what is JSON and what is not very clear and clean. 
+<p>Second, the implementation is designed for 
+stub objects. The existence of a RestNode object and the loading of the RestNode object are two different steps. </p>
+
+</body>

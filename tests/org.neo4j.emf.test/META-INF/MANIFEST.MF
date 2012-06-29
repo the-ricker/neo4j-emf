@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Neo4j EMF Test
+Bundle-SymbolicName: org.neo4j.emf.test
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.junit;bundle-version="4.10.0",
+ jackson-core;bundle-version="2.0.0",
+ org.apache.httpcomponents.httpclient;bundle-version="4.1.0",
+ org.apache.httpcomponents.httpcore;bundle-version="4.1.0"

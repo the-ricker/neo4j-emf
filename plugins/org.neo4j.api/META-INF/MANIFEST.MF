@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Neo4j API
+Bundle-SymbolicName: org.neo4j.api
+Bundle-Version: 1.8.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Export-Package: org.neo4j.graphdb
