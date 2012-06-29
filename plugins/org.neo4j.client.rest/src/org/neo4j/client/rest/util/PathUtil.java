@@ -26,4 +26,11 @@ public class PathUtil {
 		return buf.toString();
 	}
 
+	public static long getRelationshipId(String path) {
+		if (path != null && path.lastIndexOf('/') > -1) {
+			return Long.parseLong(path.substring(path.lastIndexOf('/')+1));
+		}
+		return 0L;
+	}
+
 }

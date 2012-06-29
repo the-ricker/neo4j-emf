@@ -31,7 +31,7 @@ import org.neo4j.client.rest.RestNode;
 public class RestGraphDatabaseImpl implements RestGraphDatabase {
 
 	public static final long DEFAULT_TIMEOUT = 2000;
-	
+
 	private Log log = LogFactory.getLog(RestGraphDatabaseImpl.class);
 
 	/*
@@ -41,10 +41,10 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	private Map<Long, SoftReference<RestNodeImpl>> nodes;
 	private Map<Long, SoftReference<RestRelationshipImpl>> relationships;
 	private long timeout = DEFAULT_TIMEOUT;
-	private DatabaseData data;
+
 	private Loader loader;
-	
-	
+	private boolean autoLoad;
+
 	public RestGraphDatabaseImpl() {
 		this(null);
 	}
@@ -69,25 +69,28 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 
 	@Override
 	public RestNode createNode() {
+		RestNodeImpl node = null;
 		try {
 			Future<NodeData> req = loader.createNode();
-			RestNodeImpl node = new RestNodeImpl(this, req.get(timeout, TimeUnit.MILLISECONDS));
+			node = new RestNodeImpl(this, req.get(timeout, TimeUnit.MILLISECONDS));
 			cacheNode(node);
 			return node;
 		} catch (Exception e) {
 			log.error("Failed to get reference node", e);
 		}
-		return null;
+		return node;
 	}
 
 	@Override
 	public RestNode getNodeById(long id) {
 		RestNodeImpl node = lookupNode(id);
-		if (node != null) {
-			return node;
+		if (node == null) {
+			node = new RestNodeImpl(this, id);
+			cacheNode(node);
+			if (autoLoad) {
+				loader.loadNode(node);
+			}
 		}
-		node = new RestNodeImpl(this, id);
-		cacheNode(node);
 		return node;
 	}
 
@@ -105,7 +108,26 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 
 	@Override
 	public Relationship getRelationshipById(long id) {
-		// TODO Auto-generated method stub
+		RestRelationshipImpl relationship = lookupRelationship(id);
+		if (relationship == null) {
+			relationship = new RestRelationshipImpl(this, id);
+			cacheRelationship(relationship);
+			if (autoLoad) {
+				loader.loadRelationship(relationship);
+			}
+		}
+		return relationship;
+	}
+
+	protected void cacheRelationship(RestRelationshipImpl relationship) {
+		relationships.put(relationship.getId(), new SoftReference<RestRelationshipImpl>(relationship));
+	}
+
+	protected RestRelationshipImpl lookupRelationship(long id) {
+		SoftReference<RestRelationshipImpl> ref = relationships.get(id);
+		if (ref != null) {
+			return ref.get();
+		}
 		return null;
 	}
 
@@ -133,6 +155,14 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 		relationships.clear();
 	}
 
-	
-	
+	@Override
+	public boolean isAutoLoad() {
+		return autoLoad;
+	}
+
+	@Override
+	public void setAutoLoad(boolean autoLoad) {
+		this.autoLoad = autoLoad;
+	}
+
 }

@@ -22,5 +22,8 @@ public interface RestGraphDatabase extends GraphDatabase {
 	 */
 	public URI getURI();
 
-
+	public void setAutoLoad(boolean autoload);
+	
+	public boolean isAutoLoad();
+	
 }

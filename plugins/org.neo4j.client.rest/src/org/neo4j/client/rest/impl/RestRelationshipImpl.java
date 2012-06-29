@@ -28,7 +28,17 @@ public class RestRelationshipImpl extends PropertyContainerImpl implements RestR
 	 */
 	protected RestRelationshipImpl(RestGraphDatabaseImpl graphDatabase, RelationshipData data) {
 		super(graphDatabase);
+		setRelationshipData(data);
+	}
+
+	protected RestRelationshipImpl(RestGraphDatabaseImpl graphDatabase, long id) {
+		super(graphDatabase);
+		this.id = id;
+	}
+	
+	public void setRelationshipData(RelationshipData data) {
 		this.data = data;
+		id = PathUtil.getRelationshipId(data.getSelf());
 		setLoaded(System.currentTimeMillis());
 	}
 

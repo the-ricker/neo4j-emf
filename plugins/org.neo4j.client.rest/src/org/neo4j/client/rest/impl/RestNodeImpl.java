@@ -26,7 +26,7 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 	private Log log = LogFactory.getLog(RestNodeImpl.class);
 
 	private NodeData data;
-	private Collection<RelationshipData> relationships;
+	private Collection<Long> relationships;
 	private long id;
 
 	protected RestNodeImpl(RestGraphDatabaseImpl graphDatabase, long id) {
@@ -59,8 +59,7 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	@Override
 	public boolean hasRelationship() {
-		// TODO Auto-generated method stub
-		return false;
+		return !relationships.isEmpty();
 	}
 
 	@Override
@@ -195,6 +194,16 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	@Override
 	protected void doLoad() throws RestClientException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setNodeData(NodeData nodeData) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setRelationshipData(Collection<RelationshipData> doLoadNodeRelationships) {
 		// TODO Auto-generated method stub
 		
 	}
