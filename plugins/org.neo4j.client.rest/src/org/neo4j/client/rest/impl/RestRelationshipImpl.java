@@ -22,6 +22,8 @@ public class RestRelationshipImpl extends PropertyContainerImpl implements RestR
 
 	private long id;
 	private RelationshipData data;
+	private long startNodeId;
+	private long endNodeId;
 
 	/**
 	 * @param graphDatabase
@@ -34,11 +36,15 @@ public class RestRelationshipImpl extends PropertyContainerImpl implements RestR
 	protected RestRelationshipImpl(RestGraphDatabaseImpl graphDatabase, long id) {
 		super(graphDatabase);
 		this.id = id;
+		startNodeId = 0;
+		endNodeId=0;
 	}
 	
 	public void setRelationshipData(RelationshipData data) {
 		this.data = data;
 		id = PathUtil.getRelationshipId(data.getSelf());
+		startNodeId = PathUtil.getNodeId(data.getStart());
+		endNodeId =PathUtil.getNodeId(data.getEnd());
 		setLoaded(System.currentTimeMillis());
 	}
 
@@ -55,24 +61,22 @@ public class RestRelationshipImpl extends PropertyContainerImpl implements RestR
 
 	@Override
 	public Node getStartNode() {
-		long nodeId = PathUtil.getNodeId(data.getStart());
-		return graphDatabase.getNodeById(nodeId);
+		return graphDatabase.getNodeById(startNodeId);
 	}
 
 	@Override
 	public Node getEndNode() {
-		long nodeId = PathUtil.getNodeId(data.getEnd());
-		return graphDatabase.getNodeById(nodeId);
+		return graphDatabase.getNodeById(endNodeId);
 	}
 
 
 	@Override
 	public Node getOtherNode(Node node) {
 		if (node != null) {
-			if (node.getId() == Long.parseLong(data.getEnd())) {
+			if (node.getId() == startNodeId) {
 				return getStartNode();
 			}
-			if (node.getId() == Long.parseLong(data.getStart())) {
+			if (node.getId() == endNodeId) {
 				return getEndNode();
 			}
 		}
@@ -123,6 +127,16 @@ public class RestRelationshipImpl extends PropertyContainerImpl implements RestR
 	@Override
 	protected Map<String, Object> getData() {
 		return data.getData();
+	}
+
+	@Override
+	public long getStartNodeId() {
+		return startNodeId;
+	}
+
+	@Override
+	public long getEndNodeId() {
+		return endNodeId;
 	}
 
 }

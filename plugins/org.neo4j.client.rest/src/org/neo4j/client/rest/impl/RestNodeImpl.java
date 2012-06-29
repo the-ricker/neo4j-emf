@@ -5,6 +5,7 @@ package org.neo4j.client.rest.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -16,6 +17,7 @@ import org.neo4j.client.RelationshipType;
 import org.neo4j.client.rest.RestClientException;
 import org.neo4j.client.rest.RestNode;
 import org.neo4j.client.rest.util.PathUtil;
+import org.neo4j.client.rest.util.RelationshipUtil;
 
 /**
  * @author Ricker
@@ -26,7 +28,7 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 	private Log log = LogFactory.getLog(RestNodeImpl.class);
 
 	private NodeData data;
-	private Collection<Long> relationships;
+	private Collection<RestRelationshipImpl> relationships;
 	private long id;
 
 	protected RestNodeImpl(RestGraphDatabaseImpl graphDatabase, long id) {
@@ -36,9 +38,7 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	protected RestNodeImpl(RestGraphDatabaseImpl graphDatabase, NodeData data) {
 		super(graphDatabase);
-		this.data = data;
-		id = PathUtil.getNodeId(data.getSelf());
-		setLoaded(System.currentTimeMillis());
+		setNodeData(data);
 	}
 
 	@Override
@@ -53,8 +53,7 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	@Override
 	public Iterable<Relationship> getRelationships() {
-		// TODO Auto-generated method stub
-		return null;
+		return new HashSet<Relationship>(relationships);
 	}
 
 	@Override
@@ -64,55 +63,82 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	@Override
 	public Iterable<Relationship> getRelationships(RelationshipType... types) {
-		// TODO Auto-generated method stub
-		return null;
+		return getRelationships(Direction.BOTH, types);
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(Direction direction, RelationshipType... types) {
-		// TODO Auto-generated method stub
-		return null;
+		HashSet<Relationship> results = new HashSet<Relationship>();
+		for (RestRelationshipImpl rel : relationships) {
+			if (direction == Direction.BOTH || direction == RelationshipUtil.getDirection(this, rel)) {
+				if (RelationshipUtil.intersects(rel.getType(), types)) {
+					results.add(rel);
+				}
+			}
+		}
+		return results;
 	}
 
 	@Override
 	public boolean hasRelationship(RelationshipType... types) {
-		// TODO Auto-generated method stub
-		return false;
+		return hasRelationship(Direction.BOTH, types);
 	}
 
 	@Override
 	public boolean hasRelationship(Direction direction, RelationshipType... types) {
-		// TODO Auto-generated method stub
+		for (RestRelationshipImpl rel : relationships) {
+			if (direction == Direction.BOTH || direction == RelationshipUtil.getDirection(this, rel)) {
+				if (RelationshipUtil.intersects(rel.getType(), types)) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(Direction dir) {
-		// TODO Auto-generated method stub
-		return null;
+		if (dir == Direction.BOTH) {
+			return getRelationships();
+		}
+		HashSet<Relationship> results = new HashSet<Relationship>();
+		for (RestRelationshipImpl rel : relationships) {
+			if (dir == RelationshipUtil.getDirection(this, rel)) {
+				results.add(rel);
+			}
+		}
+		return results;
 	}
 
 	@Override
 	public boolean hasRelationship(Direction dir) {
-		// TODO Auto-generated method stub
+		for (RestRelationshipImpl rel : relationships) {
+			if (dir == Direction.BOTH || dir == RelationshipUtil.getDirection(this, rel)) {
+				return true;
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(RelationshipType type, Direction dir) {
-		// TODO Auto-generated method stub
-		return null;
+		return getRelationships(dir,type);
 	}
 
 	@Override
 	public boolean hasRelationship(RelationshipType type, Direction dir) {
-		// TODO Auto-generated method stub
-		return false;
+		return hasRelationship(dir,type);
 	}
 
 	@Override
 	public Relationship getSingleRelationship(RelationshipType type, Direction dir) {
-		// TODO Auto-generated method stub
+		for (RestRelationshipImpl rel : relationships) {
+			if (dir == Direction.BOTH || dir == RelationshipUtil.getDirection(this, rel)) {
+				if (RelationshipUtil.matches(rel.getType(), type)) {
+					return rel;
+				}
+			}
+		}
 		return null;
 	}
 
@@ -121,43 +147,6 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-//	@Override
-//	protected void doLoad() throws RestClientException {
-//		ObjectMapper mapper = new ObjectMapper();
-//		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//		/*
-//		 * load data
-//		 */
-//		HttpGet req = new HttpGet(getURI());
-//		req.setHeader("Accept", "application/json");
-//		HttpResponse response = getGraphDatabase().execute(req);
-//		try {
-//			data = mapper.readValue(response.getEntity().getContent(), NodeData.class);
-//		} catch (Exception e) {
-//			throw new RestClientException(e);
-//		}
-//		/*
-//		 * load relationships
-//		 */
-//		req = new HttpGet(getURI());
-//		req.setHeader("Accept", "application/json");
-//		response = getGraphDatabase().execute(req);
-//		try {
-//			relationships = mapper.readValue(response.getEntity().getContent(),
-//					new TypeReference<Collection<RelationshipData>>() {
-//					});
-//		} catch (Exception e) {
-//			throw new RestClientException(e);
-//		}
-//	}
-
-//	public String getURI() {
-//		if (isLoaded()) {
-//			return data.getSelf();
-//		}
-//		return getGraphDatabase().getURI().toString() + "/node/" + getId();
-//	}
 
 	@Override
 	public boolean isDirty() {
@@ -188,24 +177,25 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 
 	@Override
 	public String getSelf() {
-		// TODO Auto-generated method stub
-		return null;
+		return data.getSelf();
 	}
 
 	@Override
 	protected void doLoad() throws RestClientException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void setNodeData(NodeData nodeData) {
-		// TODO Auto-generated method stub
-		
+		this.data = nodeData;
+		id = PathUtil.getNodeId(data.getSelf());
+		setLoaded(System.currentTimeMillis());
+
 	}
 
-	public void setRelationshipData(Collection<RelationshipData> doLoadNodeRelationships) {
+	public void setRelationshipData(Collection<RelationshipData> nodeRelationships) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

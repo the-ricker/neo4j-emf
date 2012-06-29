@@ -10,5 +10,7 @@ import org.neo4j.client.Node;
  *
  */
 public interface RestNode extends Node, RestPropertyContainer {
+	
+	
 
 }

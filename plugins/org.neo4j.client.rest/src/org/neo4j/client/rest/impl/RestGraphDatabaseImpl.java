@@ -165,4 +165,16 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 		this.autoLoad = autoLoad;
 	}
 
+	@Override
+	public void saveAll() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void loadAll() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

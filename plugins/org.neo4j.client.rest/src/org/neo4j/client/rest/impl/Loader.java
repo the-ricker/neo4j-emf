@@ -74,11 +74,14 @@ public class Loader {
 	}
 	
 	/**
-	 * Why is relationship sent as part of the database data?
+	 * 
 	 * @param id
 	 * @return
 	 */
 	public String createRelationshipUri(long id) {
+		/*
+		 * Why is relationship sent as part of the database data?
+		 */
 		// return data.getRelationship() + "/" + Long.toString(id);
 		return uri.toString() + "/relationship/" + Long.toString(id);
 	}
@@ -168,10 +171,7 @@ public class Loader {
 		});
 	}
 
-	private RestNodeImpl doLoadNode(RestNodeImpl node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 	private Collection<RelationshipData> doLoadNodeRelationships(NodeData nodeData) throws RestClientException {
 		checkData();
@@ -188,9 +188,7 @@ public class Loader {
 	}
 
 	public long getReferenceNodeId() throws RestClientException {
-		if (data == null) {
-			throw new RestClientException("No database specified or available");
-		}
+		checkData();
 		return PathUtil.getNodeId(data.getReferenceNode());
 	}
 
@@ -201,7 +199,7 @@ public class Loader {
 
 	private void checkData() throws RestClientException {
 		if (data == null) {
-			throw new RestClientException("No database specified or available");
+			throw new RestClientException("No database specified or available.");
 		}
 	}
 
