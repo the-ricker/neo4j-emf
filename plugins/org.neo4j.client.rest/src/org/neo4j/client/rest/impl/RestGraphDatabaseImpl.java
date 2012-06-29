@@ -10,19 +10,15 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.neo4j.client.Node;
 import org.neo4j.client.Relationship;
 import org.neo4j.client.index.IndexManager;
-import org.neo4j.client.rest.RestClientException;
 import org.neo4j.client.rest.RestGraphDatabase;
 import org.neo4j.client.rest.RestNode;
-import org.neo4j.client.rest.util.PathUtil;
 
 /**
  * Responsible for implementing the interface and maintaining the cache.
@@ -34,6 +30,8 @@ import org.neo4j.client.rest.util.PathUtil;
  */
 public class RestGraphDatabaseImpl implements RestGraphDatabase {
 
+	public static final long DEFAULT_TIMEOUT = 2000;
+	
 	private Log log = LogFactory.getLog(RestGraphDatabaseImpl.class);
 
 	/*
@@ -41,11 +39,12 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	 * understanding.html
 	 */
 	private Map<Long, SoftReference<RestNodeImpl>> nodes;
-	private Map<Long, SoftReference<RelationshipImpl>> references;
-	
+	private Map<Long, SoftReference<RestRelationshipImpl>> relationships;
+	private long timeout = DEFAULT_TIMEOUT;
 	private DatabaseData data;
 	private Loader loader;
-
+	
+	
 	public RestGraphDatabaseImpl() {
 		this(null);
 	}
@@ -53,7 +52,6 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	public RestGraphDatabaseImpl(URI uri) {
 		loader = new Loader(uri);
 		nodes = new WeakHashMap<Long, SoftReference<RestNodeImpl>>();
-		
 	}
 
 	@Override
@@ -72,7 +70,8 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	@Override
 	public RestNode createNode() {
 		try {
-			
+			Future<NodeData> req = loader.createNode();
+			RestNodeImpl node = new RestNodeImpl(this, req.get(timeout, TimeUnit.MILLISECONDS));
 			cacheNode(node);
 			return node;
 		} catch (Exception e) {
@@ -80,9 +79,6 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 		}
 		return null;
 	}
-	
-	
-	
 
 	@Override
 	public RestNode getNodeById(long id) {
@@ -116,7 +112,7 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	@Override
 	public Node getReferenceNode() {
 		try {
-			Long nodeId = PathUtil.getNodeId(getData().getReferenceNode());
+			Long nodeId = loader.getReferenceNodeId();
 			return getNodeById(nodeId);
 		} catch (Exception e) {
 			log.error("Failed to get reference node", e);
@@ -131,21 +127,12 @@ public class RestGraphDatabaseImpl implements RestGraphDatabase {
 	}
 
 	@Override
-	public HttpResponse execute(HttpUriRequest request) throws RestClientException {
-		try {
-			return httpclient.execute(request);
-		} catch (Exception e) {
-			throw new RestClientException(e);
-		}
-	}
-
-	@Override
 	public void close() throws IOException {
-		// TODO Auto-generated method stub
-		
+		loader.shutdown();
+		nodes.clear();
+		relationships.clear();
 	}
-
 
 	
-
+	
 }

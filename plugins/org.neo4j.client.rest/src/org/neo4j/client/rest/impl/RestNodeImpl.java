@@ -9,20 +9,13 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.neo4j.client.Direction;
 import org.neo4j.client.Node;
 import org.neo4j.client.Relationship;
 import org.neo4j.client.RelationshipType;
 import org.neo4j.client.rest.RestClientException;
-import org.neo4j.client.rest.RestGraphDatabase;
 import org.neo4j.client.rest.RestNode;
 import org.neo4j.client.rest.util.PathUtil;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Ricker
@@ -36,12 +29,12 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 	private Collection<RelationshipData> relationships;
 	private long id;
 
-	public RestNodeImpl(RestGraphDatabaseImpl graphDatabase, long id) {
+	protected RestNodeImpl(RestGraphDatabaseImpl graphDatabase, long id) {
 		super(graphDatabase);
 		this.id = id;
 	}
 
-	public RestNodeImpl(RestGraphDatabaseImpl graphDatabase, NodeData data) {
+	protected RestNodeImpl(RestGraphDatabaseImpl graphDatabase, NodeData data) {
 		super(graphDatabase);
 		this.data = data;
 		id = PathUtil.getNodeId(data.getSelf());
@@ -130,42 +123,42 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 		return null;
 	}
 
-	@Override
-	protected void doLoad() throws RestClientException {
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		/*
-		 * load data
-		 */
-		HttpGet req = new HttpGet(getURI());
-		req.setHeader("Accept", "application/json");
-		HttpResponse response = getGraphDatabase().execute(req);
-		try {
-			data = mapper.readValue(response.getEntity().getContent(), NodeData.class);
-		} catch (Exception e) {
-			throw new RestClientException(e);
-		}
-		/*
-		 * load relationships
-		 */
-		req = new HttpGet(getURI());
-		req.setHeader("Accept", "application/json");
-		response = getGraphDatabase().execute(req);
-		try {
-			relationships = mapper.readValue(response.getEntity().getContent(),
-					new TypeReference<Collection<RelationshipData>>() {
-					});
-		} catch (Exception e) {
-			throw new RestClientException(e);
-		}
-	}
+//	@Override
+//	protected void doLoad() throws RestClientException {
+//		ObjectMapper mapper = new ObjectMapper();
+//		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+//		/*
+//		 * load data
+//		 */
+//		HttpGet req = new HttpGet(getURI());
+//		req.setHeader("Accept", "application/json");
+//		HttpResponse response = getGraphDatabase().execute(req);
+//		try {
+//			data = mapper.readValue(response.getEntity().getContent(), NodeData.class);
+//		} catch (Exception e) {
+//			throw new RestClientException(e);
+//		}
+//		/*
+//		 * load relationships
+//		 */
+//		req = new HttpGet(getURI());
+//		req.setHeader("Accept", "application/json");
+//		response = getGraphDatabase().execute(req);
+//		try {
+//			relationships = mapper.readValue(response.getEntity().getContent(),
+//					new TypeReference<Collection<RelationshipData>>() {
+//					});
+//		} catch (Exception e) {
+//			throw new RestClientException(e);
+//		}
+//	}
 
-	public String getURI() {
-		if (isLoaded()) {
-			return data.getSelf();
-		}
-		return getGraphDatabase().getURI().toString() + "/node/" + getId();
-	}
+//	public String getURI() {
+//		if (isLoaded()) {
+//			return data.getSelf();
+//		}
+//		return getGraphDatabase().getURI().toString() + "/node/" + getId();
+//	}
 
 	@Override
 	public boolean isDirty() {
@@ -198,6 +191,12 @@ public class RestNodeImpl extends PropertyContainerImpl implements RestNode {
 	public String getSelf() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	protected void doLoad() throws RestClientException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -19,6 +19,9 @@
  */
 package org.neo4j.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A dynamically instantiated and named {@link RelationshipType}. This class is
  * a convenience implementation of <code>RelationshipType</code> that is
@@ -51,93 +54,97 @@ package org.neo4j.client;
  * </code>
  * </pre>
  */
-public final class DynamicRelationshipType implements RelationshipType
-{
-    private final String name;
+public final class DynamicRelationshipType implements RelationshipType {
 
-    private DynamicRelationshipType( final String name )
-    {
-        if ( name == null )
-        {
-            throw new IllegalArgumentException( "A relationship type cannot "
-                                                + "have a null name" );
-        }
-        this.name = name;
-    }
+	private static Map<String, DynamicRelationshipType> types = new HashMap<String, DynamicRelationshipType>();
 
-    /**
-     * Instantiates a new DynamicRelationshipType with the given name.
-     * There's more information regarding relationship types over at
-     * {@link RelationshipType}.
-     * 
-     * @param name the name of the dynamic relationship type
-     * @return a DynamicRelationshipType with the given name
-     * @throws IllegalArgumentException if name is <code>null</code>
-     */
-    public static DynamicRelationshipType withName( final String name )
-    {
-        return new DynamicRelationshipType( name );
-    }
+	private final String name;
 
-    /**
-     * Returns the name of this relationship type. The name uniquely identifies
-     * a relationship type, i.e. two different RelationshipType instances with
-     * different object identifiers (and possibly even different classes) are
-     * semantically equivalent if they have {@link String#equals(Object) equal}
-     * names.
-     * 
-     * @return the name of the relationship type
-     */
-    public String name()
-    {
-        return this.name;
-    }
+	private DynamicRelationshipType(final String name) {
+		if (name == null) {
+			throw new IllegalArgumentException("A relationship type cannot have a null name");
+		}
+		this.name = name;
+	}
 
-    /**
-     * Returns a string representation of this dynamic relationship type.
-     * 
-     * @return a string representation of this dynamic relationship type
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString()
-    {
-        return "DynamicRelationshipType[" + this.name() + "]";
-    }
+	/**
+	 * Instantiates a new DynamicRelationshipType with the given name. There's
+	 * more information regarding relationship types over at
+	 * {@link RelationshipType}.
+	 * 
+	 * @param name
+	 *            the name of the dynamic relationship type
+	 * @return a DynamicRelationshipType with the given name
+	 * @throws IllegalArgumentException
+	 *             if name is <code>null</code>
+	 */
+	public static DynamicRelationshipType withName(final String typeName) {
+		DynamicRelationshipType type = null;
+		if (typeName != null) {
+			type = types.get(typeName);
+			if (type == null) {
+				type = new DynamicRelationshipType(typeName);
+				types.put(typeName, type);
+			}
+		}
+		return type;
+	}
 
-    /**
-     * Implements the identity-based equals defined by {@link Object
-     * java.lang.Object}. This means that this dynamic relationship type
-     * instance will NOT be equal to other relationship types with the same
-     * name. As outlined in the documentation for {@link RelationshipType
-     * RelationshipType}, the proper way to check for equivalence between two
-     * relationship types is to compare their {@link RelationshipType#name()
-     * names}.
-     * 
-     * @return <code>true</code> if <code>other</code> is the same instance as
-     *         this dynamic relationship type, <code>false</code> otherwise
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals( final Object other )
-    {
-        return super.equals( other );
-    }
+	/**
+	 * Returns the name of this relationship type. The name uniquely identifies
+	 * a relationship type, i.e. two different RelationshipType instances with
+	 * different object identifiers (and possibly even different classes) are
+	 * semantically equivalent if they have {@link String#equals(Object) equal}
+	 * names.
+	 * 
+	 * @return the name of the relationship type
+	 */
+	public String name() {
+		return this.name;
+	}
 
-    /**
-     * Implements the default hash function as defined by {@link Object
-     * java.lang.Object}. This means that if you put a dynamic relationship
-     * instance into a hash-based collection, it most likely will NOT behave as
-     * you expect. Please see the documentation of {@link #equals(Object)
-     * equals} and the {@link DynamicRelationshipType class documentation} for
-     * more details.
-     * 
-     * @return a hash code value for this dynamic relationship type instance
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode()
-    {
-        return super.hashCode();
-    }
+	/**
+	 * Returns a string representation of this dynamic relationship type.
+	 * 
+	 * @return a string representation of this dynamic relationship type
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DynamicRelationshipType[" + this.name() + "]";
+	}
+
+	/**
+	 * Implements the identity-based equals defined by {@link Object
+	 * java.lang.Object}. This means that this dynamic relationship type
+	 * instance will NOT be equal to other relationship types with the same
+	 * name. As outlined in the documentation for {@link RelationshipType
+	 * RelationshipType}, the proper way to check for equivalence between two
+	 * relationship types is to compare their {@link RelationshipType#name()
+	 * names}.
+	 * 
+	 * @return <code>true</code> if <code>other</code> is the same instance as
+	 *         this dynamic relationship type, <code>false</code> otherwise
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(final Object other) {
+		return super.equals(other);
+	}
+
+	/**
+	 * Implements the default hash function as defined by {@link Object
+	 * java.lang.Object}. This means that if you put a dynamic relationship
+	 * instance into a hash-based collection, it most likely will NOT behave as
+	 * you expect. Please see the documentation of {@link #equals(Object)
+	 * equals} and the {@link DynamicRelationshipType class documentation} for
+	 * more details.
+	 * 
+	 * @return a hash code value for this dynamic relationship type instance
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
 }

@@ -5,37 +5,37 @@ package org.neo4j.client.rest.impl;
 
 import java.util.Map;
 
+import org.neo4j.client.DynamicRelationshipType;
 import org.neo4j.client.Node;
 import org.neo4j.client.RelationshipType;
 import org.neo4j.client.rest.RestClientException;
-import org.neo4j.client.rest.RestGraphDatabase;
 import org.neo4j.client.rest.RestRelationship;
 import org.neo4j.client.rest.util.PathUtil;
 
 /**
+ * The connection of the Relationship to the Nodes is weak. 
+ * 
  * @author Ricker
- *
+ * 
  */
-public class RelationshipImpl extends PropertyContainerImpl implements RestRelationship {
+public class RestRelationshipImpl extends PropertyContainerImpl implements RestRelationship {
 
 	private long id;
 	private RelationshipData data;
-	
+
 	/**
 	 * @param graphDatabase
 	 */
-	public RelationshipImpl(RestGraphDatabase graphDatabase, RelationshipData data) {
+	protected RestRelationshipImpl(RestGraphDatabaseImpl graphDatabase, RelationshipData data) {
 		super(graphDatabase);
 		this.data = data;
 		setLoaded(System.currentTimeMillis());
 	}
 
-
 	@Override
 	public long getId() {
 		return id;
 	}
-
 
 	@Override
 	public void delete() {
@@ -43,63 +43,50 @@ public class RelationshipImpl extends PropertyContainerImpl implements RestRelat
 
 	}
 
-
 	@Override
 	public Node getStartNode() {
-		checkLoad();
-		if (data != null) {
-			long nodeId = PathUtil.getNodeId(data.getStart());
-			return getGraphDatabase().getNodeById(nodeId);
+		long nodeId = PathUtil.getNodeId(data.getStart());
+		return graphDatabase.getNodeById(nodeId);
+	}
+
+	@Override
+	public Node getEndNode() {
+		long nodeId = PathUtil.getNodeId(data.getEnd());
+		return graphDatabase.getNodeById(nodeId);
+	}
+
+
+	@Override
+	public Node getOtherNode(Node node) {
+		if (node != null) {
+			if (node.getId() == Long.parseLong(data.getEnd())) {
+				return getStartNode();
+			}
+			if (node.getId() == Long.parseLong(data.getStart())) {
+				return getEndNode();
+			}
 		}
 		return null;
 	}
 
 
 	@Override
-	public Node getEndNode() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.neo4j.client.Relationship#getOtherNode(org.neo4j.client.Node)
-	 */
-	@Override
-	public Node getOtherNode(Node node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.neo4j.client.Relationship#getNodes()
-	 */
-	@Override
 	public Node[] getNodes() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Node[]{getStartNode(), getEndNode()};
 	}
 
-	/* (non-Javadoc)
-	 * @see org.neo4j.client.Relationship#getType()
-	 */
+
 	@Override
 	public RelationshipType getType() {
-		// TODO Auto-generated method stub
-		return null;
+		return DynamicRelationshipType.withName(data.getType());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.neo4j.client.Relationship#isType(org.neo4j.client.RelationshipType)
-	 */
 	@Override
 	public boolean isType(RelationshipType type) {
-		// TODO Auto-generated method stub
-		return false;
+		return type.equals(getType());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.neo4j.client.impl.PropertyContainerImpl#doLoad()
-	 */
+
 	@Override
 	protected void doLoad() throws RestClientException {
 		// TODO Auto-generated method stub
@@ -115,11 +102,17 @@ public class RelationshipImpl extends PropertyContainerImpl implements RestRelat
 	@Override
 	public void save() throws RestClientException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	
+	@Override
+	public String getSelf() {
+		return data.getSelf();
+	}
 
-
+	@Override
+	protected Map<String, Object> getData() {
+		return data.getData();
+	}
 
 }

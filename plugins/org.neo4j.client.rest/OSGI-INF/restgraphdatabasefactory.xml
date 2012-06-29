@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.neo4j.client.rest">
+   <implementation class="org.neo4j.client.rest.RestGraphDatabaseFactory"/>
+   <service>
+      <provide interface="org.neo4j.client.GraphDatabaseFactory"/>
+   </service>
+</scr:component>
